@@ -35,7 +35,7 @@ export default function RootLayout({
 }>) {
   const hasClerk = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
   const shell = (
-    <RootProvider>
+    <>
       <header className="top-nav">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-6 py-4">
           <div className="flex items-center gap-6">
@@ -57,10 +57,10 @@ export default function RootLayout({
               <>
                 <SignedOut>
                   <SignInButton mode="modal">
-                    <button className="auth-btn-secondary">Sign in</button>
+                    <button className="auth-btn-secondary text-sm px-4 py-2 font-medium bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 rounded-md transition-colors">Sign in</button>
                   </SignInButton>
                   <SignUpButton mode="modal">
-                    <button className="auth-btn-primary">Create account</button>
+                    <button className="auth-btn-primary text-sm px-4 py-2 font-medium bg-black text-white hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-200 rounded-md transition-colors">Create account</button>
                   </SignUpButton>
                 </SignedOut>
                 <SignedIn>
@@ -74,14 +74,16 @@ export default function RootLayout({
         </div>
       </header>
       {children}
-    </RootProvider>
+    </>
   );
 
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${bodyFont.variable} ${displayFont.variable} antialiased selection:bg-black/10 dark:selection:bg-white/30`}>
-        <GridBackground />
-        {hasClerk ? <ClerkProvider>{shell}</ClerkProvider> : shell}
+        <RootProvider>
+          <GridBackground />
+          {hasClerk ? <ClerkProvider>{shell}</ClerkProvider> : shell}
+        </RootProvider>
       </body>
     </html>
   );
