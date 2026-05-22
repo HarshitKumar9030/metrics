@@ -1,0 +1,118 @@
+@import "tailwindcss";
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
+
+:root {
+  --bg: #ffffff;
+  --surface: #f4f4f5;
+  --surface-2: #e4e4e7;
+  --surface-3: #d4d4d8;
+  --text: #000000;
+  --text-muted: #52525b;
+  --text-faint: #a1a1aa;
+  --border: rgba(0, 0, 0, 0.1);
+  --ring: rgba(0, 0, 0, 0.2);
+  --primary: #000000;
+  --primary-hover: #1a1a1a;
+  --primary-foreground: #ffffff;
+  --chart-a: #000000;
+  --chart-b: #52525b;
+  --chart-grid: rgba(0, 0, 0, 0.05);
+}
+
+.dark {
+  --bg: #000000;
+  --surface: #0a0a0a;
+  --surface-2: #111111;
+  --surface-3: #1a1a1a;
+  --text: #ffffff;
+  --text-muted: #a1a1aa;
+  --text-faint: #52525b;
+  --border: rgba(255, 255, 255, 0.1);
+  --ring: rgba(255, 255, 255, 0.2);
+  --primary: #ffffff;
+  --primary-hover: #e5e5e5;
+  --primary-foreground: #000000;
+  --chart-a: #ffffff;
+  --chart-b: #a1a1aa;
+  --chart-grid: rgba(255, 255, 255, 0.05);
+}
+
+* {
+  border-color: var(--border);
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  color: var(--text);
+  background: var(--bg);
+  font-family: var(--font-body), sans-serif;
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+html > body[data-scroll-locked] {
+  margin-right: 0 !important;
+  --removed-body-scroll-bar-size: 0 !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display), sans-serif;
+}
+
+.code-block {
+  background: linear-gradient(145deg, rgba(24, 34, 58, 0.95), rgba(15, 22, 39, 0.95));
+  border: 1px solid var(--border);
+}
+
+.top-nav {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+}
+
+.dark .top-nav {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.auth-btn-secondary,
+.auth-btn-primary {
+  height: 2.125rem;
+  border-radius: 0.5rem;
+  padding: 0 0.875rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.auth-btn-secondary {
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--surface-2) 90%, transparent);
+}
+
+.auth-btn-secondary:hover {
+  color: var(--text);
+  background: var(--surface-3);
+}
+
+.auth-btn-primary {
+  border: 1px solid transparent;
+  color: white;
+  background: var(--primary);
+}
+
+.auth-btn-primary:hover {
+  background: var(--primary-hover);
+}

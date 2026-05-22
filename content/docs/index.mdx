@@ -1,0 +1,33 @@
+---
+title: "Overview"
+description: "What Harshit Metrics is and how to use it end to end."
+---
+
+## Why this exists
+
+Harshit Metrics is a self-hostable analytics stack with:
+
+- API-key based event ingestion
+- MongoDB storage
+- A dashboard for traffic and event exploration
+- A TypeScript SDK you can install in any web app
+
+## Flow
+
+1. Sign in and create a project from `/dashboard`.
+2. Copy the generated API key.
+3. Install and initialize the SDK in your app.
+4. Track pageviews and custom events.
+5. Analyze results in the dashboard.
+
+## Core endpoints
+
+- `POST /api/collect` for ingestion
+- `GET /api/dashboard?projectId=...` for analytics data
+- `GET /api/projects` and `POST /api/projects` for project management
+
+## Security model
+
+- Dashboard + project APIs are protected with Clerk auth.
+- Ingestion stays public, but every request must send a valid API key.
+- API keys are stored hashed in MongoDB.
