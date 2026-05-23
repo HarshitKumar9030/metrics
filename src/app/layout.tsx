@@ -77,8 +77,8 @@ export default function RootLayout({
   );
 
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${bodyFont.variable} ${displayFont.variable} antialiased selection:bg-black/10 dark:selection:bg-white/30`}>
+    <html lang="en" suppressHydrationWarning className="dark">
+      <body className={`${bodyFont.variable} ${displayFont.variable} antialiased selection:bg-white/30`}>
         <AppRootProvider>
           <GridBackground />
           {hasClerk ? <ClerkProvider>{shell}</ClerkProvider> : shell}
