@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { ClerkProvider, SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
-import { RootProvider } from "fumadocs-ui/provider/next";
 import { Plus_Jakarta_Sans, Syne } from "next/font/google";
-import { ShaderBackground } from "@/components/ui/shader-bg";
+import { AppRootProvider } from "@/components/providers/app-root-provider";
 import "./globals.css";
 
 const bodyFont = Plus_Jakarta_Sans({
@@ -80,10 +79,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${bodyFont.variable} ${displayFont.variable} antialiased selection:bg-black/10 dark:selection:bg-white/30`}>
-        <RootProvider>
+        <AppRootProvider>
           <GridBackground />
           {hasClerk ? <ClerkProvider>{shell}</ClerkProvider> : shell}
-        </RootProvider>
+        </AppRootProvider>
       </body>
     </html>
   );
