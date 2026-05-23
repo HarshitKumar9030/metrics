@@ -1,0 +1,69 @@
+---
+title: "Sessions & Visitors"
+description: "How Harshit Metrics tracks sessions and visitors."
+---
+
+## Visitor ID
+
+A **visitor** is a unique browser. The SDK generates a random `visitorId` (e.g., `v_k8m2p4x9qr`) on first load and persists it to `localStorage`. This ID survives page reloads and browser sessions but is cleared if the user clears browser storage.
+
+### Properties
+
+- **Format**: `v_` prefix + 10 random alphanumeric chars
+- **Storage**: `localStorage` at key `{storageKey}:visitor-id`
+- **Lifetime**: Persistent until storage is cleared
+- **Scope**: Per-domain (different domains = different visitor IDs)
+
+## Session ID
+
+A **session** is a single period of active engagement. The SDK generates a new `sessionId` (e.g., `s_a3b5c7d9ef`) on each page load and rotates it after a configurable timeout.
+
+### Properties
+
+- **Format**: `s_` prefix + 10 random alphanumeric chars
+- **Storage**: In-memory only (not persisted)
+- **Lifetime**: Until timeout or page close
+- **Timeout**: 30 minutes of inactivity (configurable via `sessionTimeoutMs`)
+
+### Activity tracking
+
+The SDK listens for these events to determine user activity:
+
+- `mousedown`
+- `keydown`
+- `scroll`
+- `touchstart`
+
+When any of these fire, the "last activity" timestamp is updated. If no activity occurs for `sessionTimeoutMs`, the next `track()` call starts a new session.
+
+### Session end
+
+When a session ends (timeout, page hide, or `shutdown()`), a `session_end` event is fired with:
+
+```json
+{
+  "name": "session_end",
+  "metadata": {
+    "durationMs": 185000,
+    "sessionId": "s_a3b5c7d9ef"
+  }
+}
+```
+
+## Dashboard metrics
+
+| Metric | Derivation |
+|---|---|
+| **Unique Visitors** | Count of distinct `visitorId` values |
+| **Unique Sessions** | Count of distinct `sessionId` values |
+| **Avg. Session Duration** | Average `durationMs` from `session_end` events |
+| **Bounce Rate** | % of sessions with exactly 1 pageview |
+| **Live Visitors** | Distinct visitors with events in the last 5 minutes |
+
+## Privacy considerations
+
+- Visitor IDs are **random**, not derived from personal data
+- No cookies are used — only `localStorage`
+- No fingerprinting techniques
+- Users can clear their visitor ID by clearing browser storage
+- The SDK respects "Do Not Track" by design — it doesn't use any tracking pixels or third-party services

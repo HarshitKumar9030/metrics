@@ -1,0 +1,94 @@
+---
+title: "Next.js Integration"
+description: "Integrate Harshit Metrics into a Next.js application."
+---
+
+## App Router (recommended)
+
+### 1. Create the metrics client
+
+```ts title="lib/metrics.ts"
+import { createMetricsClient } from "harshit-metrics";
+
+let client: ReturnType<typeof createMetricsClient> | null = null;
+
+export function getMetrics() {
+  if (typeof window === "undefined") return null;
+  if (!client) {
+    client = createMetricsClient(process.env.NEXT_PUBLIC_METRICS_KEY!, {
+      endpoint: "https://metrics.harshit.page/api/collect",
+      autoTrackPageviews: true,
+      autoTrackRouteChanges: true,
+      autoTrackErrors: true,
+      autoTrackWebVitals: true,
+      debug: process.env.NODE_ENV === "development",
+    });
+  }
+  return client;
+}
+```
+
+### 2. Create a provider component
+
+```tsx title="components/metrics-provider.tsx"
+"use client";
+
+import { useEffect } from "react";
+import { getMetrics } from "@/lib/metrics";
+
+export function MetricsProvider({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    getMetrics(); // Initialize on mount
+  }, []);
+
+  return <>{children}</>;
+}
+```
+
+### 3. Add to your root layout
+
+```tsx title="app/layout.tsx"
+import { MetricsProvider } from "@/components/metrics-provider";
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body>
+        <MetricsProvider>{children}</MetricsProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+### 4. Track events from client components
+
+```tsx title="components/cta-button.tsx"
+"use client";
+
+import { getMetrics } from "@/lib/metrics";
+
+export function CTAButton() {
+  return (
+    <button
+      onClick={() => {
+        getMetrics()?.track("cta_clicked", {
+          metadata: { location: "hero" },
+        });
+      }}
+    >
+      Get Started
+    </button>
+  );
+}
+```
+
+## Environment variables
+
+```sh title=".env.local"
+NEXT_PUBLIC_METRICS_KEY=mtr_your_api_key_here
+```
+
+## Server Components
+
+The SDK is browser-only for tracking. In Server Components, you can't track events directly, but the client-side SDK will automatically track the pageview when the page renders.

@@ -1,0 +1,84 @@
+---
+title: "Dashboard API"
+description: "GET /api/dashboard — retrieve analytics data for your project."
+---
+
+## Endpoint
+
+```
+GET /api/dashboard?projectId=PROJECT_ID&days=14
+```
+
+**Auth**: Clerk session required
+
+## Parameters
+
+| Parameter | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `projectId` | `string` | ✅ | — | 24-char MongoDB ObjectId |
+| `days` | `number` | No | `14` | Lookback window (1–90) |
+
+## Response
+
+```json
+{
+  "summary": {
+    "totalEvents": 1500,
+    "pageviews": 800,
+    "uniqueVisitors": 234,
+    "uniqueSessions": 312,
+    "avgSessionDurationMs": 185000,
+    "bounceRate": 42
+  },
+  "timeline": [
+    { "day": "2026-05-20", "events": 120, "pageviews": 65 },
+    { "day": "2026-05-21", "events": 145, "pageviews": 78 }
+  ],
+  "topPaths": [
+    { "path": "/", "views": 200 },
+    { "path": "/pricing", "views": 85 }
+  ],
+  "topReferrers": [
+    { "referrer": "https://google.com", "count": 150 },
+    { "referrer": "https://twitter.com", "count": 45 }
+  ],
+  "browserBreakdown": [
+    { "browser": "Chrome", "count": 600 },
+    { "browser": "Safari", "count": 200 }
+  ],
+  "deviceBreakdown": [
+    { "deviceType": "desktop", "count": 700 },
+    { "deviceType": "mobile", "count": 300 }
+  ],
+  "eventBreakdown": [
+    { "name": "signup_clicked", "count": 50 },
+    { "name": "form_submit", "count": 30 }
+  ],
+  "hourlyHeatmap": [
+    { "hour": 0, "count": 10 },
+    { "hour": 9, "count": 85 },
+    { "hour": 14, "count": 120 }
+  ],
+  "recentEvents": [
+    {
+      "id": "683012345abcdef01234569",
+      "name": "pageview",
+      "path": "/pricing",
+      "visitorId": "v_abc123",
+      "occurredAt": "2026-05-23T08:30:00.000Z"
+    }
+  ],
+  "liveVisitors": 5
+}
+```
+
+## Summary fields
+
+| Field | Description |
+|---|---|
+| `totalEvents` | Total events in the time window |
+| `pageviews` | Events with name `pageview` |
+| `uniqueVisitors` | Distinct `visitorId` values |
+| `uniqueSessions` | Distinct `sessionId` values |
+| `avgSessionDurationMs` | Average from `session_end` events |
+| `bounceRate` | % of sessions with only 1 pageview |

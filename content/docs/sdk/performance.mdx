@@ -1,0 +1,94 @@
+---
+title: "Performance & Reliability"
+description: "How the SDK handles batching, retries, persistence, and lifecycle events."
+---
+
+## Event batching
+
+Events are not sent immediately. Instead, they are queued and flushed in batches for efficiency.
+
+### Flush triggers
+
+| Trigger | Description |
+|---|---|
+| **Timer** | Every `flushIntervalMs` (default: 3 seconds) |
+| **Queue full** | When queue reaches `maxBatchSize` (default: 20 events) |
+| **Page hide** | When user switches tabs or minimizes (`visibilitychange`) |
+| **Page unload** | When user closes the tab (`beforeunload`) |
+| **Manual** | When you call `metrics.flush()` |
+
+### Batch size
+
+Each flush sends up to `maxBatchSize` events in a single HTTP request. If there are more events queued, multiple batches are sent sequentially.
+
+## Retry with exponential backoff
+
+If a flush fails (network error, server 5xx), the SDK retries with exponential backoff:
+
+```
+Attempt 0: immediate
+Attempt 1: 500ms delay
+Attempt 2: 1000ms delay
+Attempt 3: 2000ms delay (then gives up)
+```
+
+Configure via `retryCount` (default: 3) and `retryBackoffMs` (default: 500ms).
+
+Failed events are **not dropped** — they stay in the queue for the next flush cycle.
+
+## Queue persistence
+
+When `persistQueue: true` (default), the event queue is saved to `localStorage` after every enqueue and flush. This means:
+
+- If the user closes the page before a flush, events are **not lost**
+- On next page load, persisted events are restored and flushed
+- The storage key defaults to `metrics-sdk:queue`
+
+### Storage limits
+
+The queue is bounded by `maxQueueSize` (default: 500 events). When exceeded, the oldest events are dropped.
+
+## `sendBeacon` fallback
+
+On page hide/unload, the SDK uses `navigator.sendBeacon()` instead of `fetch()`. This ensures events are delivered even when the page is closing, as `sendBeacon` is not cancelled by page teardown.
+
+The API key is passed as a query parameter when using `sendBeacon` (since custom headers aren't supported).
+
+## Timing helpers
+
+### `startTimer()`
+
+Returns a timestamp to mark the start of an operation.
+
+```ts
+const start = metrics.startTimer();
+```
+
+### `trackTiming(name, startedAt, event?)`
+
+Calculates the duration and tracks it as `durationMs` metadata.
+
+```ts
+const start = metrics.startTimer();
+
+// ... some operation ...
+
+metrics.trackTiming("api_call_duration", start, {
+  metadata: { endpoint: "/api/users" },
+});
+// Fires event with metadata: { durationMs: 142, endpoint: "/api/users" }
+```
+
+## Shutdown
+
+Call `shutdown()` to cleanly stop the SDK:
+
+```ts
+await metrics.shutdown();
+```
+
+This:
+1. Tears down all auto-trackers (click, scroll, error listeners)
+2. Clears the flush timer
+3. Fires a `session_end` event with duration
+4. Performs a final flush via `sendBeacon`

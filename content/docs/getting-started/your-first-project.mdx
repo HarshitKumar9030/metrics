@@ -1,0 +1,58 @@
+---
+title: "Your First Project"
+description: "Create a project, get an API key, and send your first event."
+---
+
+## Step 1: Sign in
+
+Go to [metrics.harshit.page](https://metrics.harshit.page) and create an account (or sign in). Authentication is handled by Clerk.
+
+## Step 2: Create a project
+
+Click **"New project"** from the dashboard. Give it a descriptive name (e.g., `my-portfolio`, `saas-app`). After creation, you'll receive an API key that looks like:
+
+```
+mtr_a1b2c3d4e5f6...
+```
+
+> **Important**: Copy and save this key immediately. The full key is only shown once — after that, only a preview is visible in the dashboard.
+
+## Step 3: Install the SDK
+
+```bash
+npm install harshit-metrics
+```
+
+## Step 4: Initialize and track
+
+```ts
+import { createMetricsClient } from "harshit-metrics";
+
+const metrics = createMetricsClient("mtr_your_api_key", {
+  endpoint: "https://metrics.harshit.page/api/collect",
+  autoTrackPageviews: true,
+});
+
+// Track a custom event
+metrics.track("signup_started", {
+  metadata: { source: "landing_page" },
+});
+```
+
+## Step 5: Check the dashboard
+
+Navigate to your [Dashboard](/dashboard). Within a few seconds, you should see:
+
+- Your **pageview** event in the timeline
+- Your **signup_started** custom event in the event breakdown
+- Your visitor counted in the unique visitors card
+
+## Multiple API keys
+
+Each project can have multiple API keys. This is useful for:
+
+- **Separate environments**: One key for production, one for staging
+- **Separate apps**: One key per frontend app pointing to the same project
+- **Key rotation**: Create a new key, migrate, then revoke the old one
+
+Create additional keys from the **API keys** section in your project dashboard.

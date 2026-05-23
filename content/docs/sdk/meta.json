@@ -1,0 +1,4 @@
+{
+  "title": "SDK",
+  "pages": ["index", "configuration", "tracking-events", "user-identification", "auto-tracking", "revenue-tracking", "spa-support", "performance", "api-reference"]
+}

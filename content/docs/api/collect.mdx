@@ -1,0 +1,91 @@
+---
+title: "Event Collection API"
+description: "POST /api/collect — ingest events from your applications."
+---
+
+## Endpoint
+
+```
+POST /api/collect
+```
+
+## Authentication
+
+Provide your API key in one of these ways:
+
+- `x-api-key` header (recommended)
+- `apiKey` query param (used as fallback for `sendBeacon` flushes)
+
+## Request body
+
+```json
+{
+  "events": [
+    {
+      "name": "pageview",
+      "path": "/pricing",
+      "url": "https://example.com/pricing",
+      "referrer": "https://google.com",
+      "sessionId": "s_abc123",
+      "visitorId": "v_xyz890",
+      "occurredAt": "2026-05-23T00:00:00.000Z",
+      "metadata": {
+        "viewportWidth": 1920,
+        "viewportHeight": 1080,
+        "pageTitle": "Pricing",
+        "browser": "Chrome",
+        "os": "Windows",
+        "deviceType": "desktop"
+      }
+    }
+  ]
+}
+```
+
+## Field reference
+
+| Field | Type | Required | Max Length | Description |
+|---|---|---|---|---|
+| `name` | `string` | ✅ | 100 | Event name |
+| `path` | `string` | No | 2048 | Page path |
+| `url` | `string` | No | 4096 | Full URL |
+| `referrer` | `string` | No | 4096 | HTTP referrer |
+| `sessionId` | `string` | No | 200 | Session identifier |
+| `visitorId` | `string` | No | 200 | Visitor identifier |
+| `occurredAt` | `string` | No | — | ISO 8601 datetime |
+| `metadata` | `object` | No | — | Key-value pairs |
+
+## Limits
+
+- **Minimum**: 1 event per request
+- **Maximum**: 100 events per request
+- Event names must be 1–100 characters
+
+## Success response
+
+```json
+// 202 Accepted
+{ "accepted": 5 }
+```
+
+## Error responses
+
+```json
+// 401 Unauthorized
+{ "error": "Missing API key" }
+
+// 401 Unauthorized
+{ "error": "Invalid API key" }
+
+// 400 Bad Request
+{
+  "error": "Invalid payload",
+  "details": { /* Zod validation errors */ }
+}
+```
+
+## Server-side enrichment
+
+The server automatically captures and stores:
+- **IP address** — from `x-forwarded-for` header
+- **User-Agent** — from the request headers

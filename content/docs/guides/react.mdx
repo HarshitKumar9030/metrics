@@ -1,0 +1,83 @@
+---
+title: "React Integration"
+description: "Add Harshit Metrics to a React SPA (Vite, CRA, etc.)."
+---
+
+## Setup
+
+### 1. Install
+
+```bash
+npm install harshit-metrics
+```
+
+### 2. Create the client
+
+```ts title="src/lib/metrics.ts"
+import { createMetricsClient } from "harshit-metrics";
+
+export const metrics = createMetricsClient(import.meta.env.VITE_METRICS_KEY, {
+  endpoint: "https://metrics.harshit.page/api/collect",
+  autoTrackPageviews: true,
+  autoTrackRouteChanges: true,
+  autoTrackErrors: true,
+  autoTrackWebVitals: true,
+});
+```
+
+### 3. Initialize in your app entry
+
+```tsx title="src/main.tsx"
+import "./lib/metrics"; // Side-effect: initializes tracking
+
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+```
+
+### 4. Track custom events
+
+```tsx title="src/components/SignupForm.tsx"
+import { metrics } from "@/lib/metrics";
+
+export function SignupForm() {
+  const handleSubmit = () => {
+    metrics.track("signup_submitted", {
+      metadata: { source: "modal" },
+    });
+  };
+
+  return <form onSubmit={handleSubmit}>{/* ... */}</form>;
+}
+```
+
+## React Hook (optional)
+
+```ts title="src/hooks/useMetrics.ts"
+import { metrics } from "@/lib/metrics";
+
+export function useMetrics() {
+  return metrics;
+}
+```
+
+```tsx
+const metrics = useMetrics();
+metrics.track("feature_used");
+```
+
+## With React Router
+
+SPA route changes are tracked automatically via `autoTrackRouteChanges: true`. No extra setup needed with React Router.
+
+## Environment variables
+
+```sh title=".env"
+VITE_METRICS_KEY=mtr_your_api_key_here
+```

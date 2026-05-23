@@ -1,0 +1,87 @@
+---
+title: "Data Model"
+description: "MongoDB collections and schema used by Harshit Metrics."
+---
+
+## Collections
+
+### `projects`
+
+Stores project metadata.
+
+```ts
+{
+  _id: ObjectId,
+  ownerUserId: string,    // Clerk user ID
+  name: string,           // Project name
+  createdAt: Date
+}
+```
+
+**Indexes**:
+- `{ createdAt: -1 }`
+- `{ ownerUserId: 1, createdAt: -1 }`
+
+### `api_keys`
+
+Stores hashed API keys for each project.
+
+```ts
+{
+  _id: ObjectId,
+  projectId: ObjectId,    // Reference to projects._id
+  label: string,          // Display name (e.g., "Production")
+  keyHash: string,        // SHA-256 hash of key:pepper
+  keyPreview: string,     // "mtr_a1b2...ef01"
+  createdAt: Date,
+  lastUsedAt?: Date,      // Updated on each ingestion
+  revokedAt?: Date        // Set when key is revoked
+}
+```
+
+**Indexes**:
+- `{ keyHash: 1 }` (unique)
+- `{ projectId: 1, createdAt: -1 }`
+
+### `events`
+
+Stores all ingested events.
+
+```ts
+{
+  _id: ObjectId,
+  projectId: ObjectId,    // Reference to projects._id
+  name: string,           // Event name (e.g., "pageview")
+  path?: string,          // Page path
+  url?: string,           // Full URL
+  referrer?: string,      // HTTP referrer
+  metadata?: object,      // Custom key-value data
+  sessionId?: string,     // Session identifier
+  visitorId?: string,     // Visitor identifier
+  occurredAt: Date,       // When the event happened
+  ip?: string,            // Client IP (from x-forwarded-for)
+  userAgent?: string,     // Client User-Agent
+  createdAt: Date         // When the server received it
+}
+```
+
+**Indexes**:
+- `{ projectId: 1, occurredAt: -1 }` — primary query index
+- `{ projectId: 1, name: 1, occurredAt: -1 }` — event type queries
+- `{ projectId: 1, "metadata.referrer": 1, occurredAt: -1 }` — referrer analysis
+- `{ projectId: 1, visitorId: 1, sessionId: 1, occurredAt: -1 }` — session analysis
+
+## Aggregation pipeline
+
+The dashboard uses MongoDB aggregation pipelines to compute analytics in real-time:
+
+- **Summary stats**: `$group` with `$sum`, `$addToSet`, `$size`
+- **Timeline**: `$dateToString` + `$group` by day
+- **Top pages/referrers**: `$group` + `$sort` + `$limit`
+- **Browser/device breakdown**: `$group` on `metadata.browser` / `metadata.deviceType`
+- **Hourly heatmap**: `$hour` extraction + `$group`
+- **Bounce rate**: Two-stage `$group` (sessions → single-pageview ratio)
+- **Session duration**: `$avg` on `session_end` event durations
+- **Live visitors**: `$match` last 5 minutes + `$group` distinct `visitorId`
+
+All queries are scoped by `projectId` and time range for security and performance.

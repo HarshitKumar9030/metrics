@@ -1,0 +1,91 @@
+---
+title: "User Identification"
+description: "Identify users, set persistent context, and use group analytics."
+---
+
+## `identify(payload)`
+
+Associate events with a known user. After calling `identify()`, all subsequent events include the user's ID and traits.
+
+```ts
+metrics.identify({
+  userId: "user_abc123",
+  traits: {
+    name: "Jane Doe",
+    plan: "enterprise",
+    company: "Acme Corp",
+  },
+});
+```
+
+This fires an `identify` event and stores the userId + traits in the global context.
+
+## `setContext(context)`
+
+Set global key-value pairs that are attached to **every** subsequent event.
+
+```ts
+metrics.setContext({
+  appVersion: "2.4.0",
+  environment: "production",
+  locale: "en-US",
+});
+```
+
+Context is merged — calling `setContext` multiple times adds to (not replaces) the existing context.
+
+## `clearContext()`
+
+Remove all global context.
+
+```ts
+metrics.clearContext();
+```
+
+## `setUserProperties(props)`
+
+Set persistent user-level properties. These are similar to context but semantically represent the user, not the app.
+
+```ts
+metrics.setUserProperties({
+  plan: "pro",
+  trialEndsAt: "2026-06-01",
+  featureFlags: "new-dashboard,beta-export",
+});
+```
+
+## `clearUserProperties()`
+
+Remove all user properties.
+
+```ts
+metrics.clearUserProperties();
+```
+
+## `group(payload)`
+
+Associate the user with a group (team, organization, company). Useful for B2B SaaS analytics.
+
+```ts
+metrics.group({
+  groupId: "org_xyz789",
+  traits: {
+    name: "Acme Corp",
+    plan: "enterprise",
+    seats: 50,
+  },
+});
+```
+
+This fires a `group` event and attaches `groupId` + traits to all subsequent events.
+
+## Data flow
+
+When you call `track()`, the metadata is merged in this order (later values override earlier):
+
+1. **Device info** (browser, OS, screen) — if `enrichDeviceInfo` is on
+2. **UTM parameters** — if `captureUtmParams` is on
+3. **Group context** — from `group()`
+4. **User properties** — from `setUserProperties()`
+5. **Global context** — from `setContext()` / `identify()`
+6. **Per-event metadata** — from the `track()` call itself

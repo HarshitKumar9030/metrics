@@ -1,0 +1,69 @@
+---
+title: "Security"
+description: "Security model and best practices for Harshit Metrics."
+---
+
+## API key security
+
+### Hashing
+
+API keys are **never stored in plaintext**. When a key is created:
+
+1. The raw key is returned to the user once
+2. The key is hashed with SHA-256 using a server-side pepper: `sha256(key + ":" + pepper)`
+3. Only the hash is stored in MongoDB
+4. A preview (first 8 + last 4 chars) is stored for display
+
+### Pepper
+
+The `API_KEY_PEPPER` environment variable adds an extra layer of security. Even if the database is compromised, keys cannot be reversed without the pepper.
+
+> **Important**: Change the default pepper in production!
+
+### Key isolation
+
+Each API key is tied to a specific project. A key from Project A cannot write events to Project B.
+
+### Key rotation
+
+To rotate a key:
+1. Create a new key in the dashboard
+2. Update your application to use the new key
+3. Wait for all deployments to propagate
+4. Revoke the old key
+
+## Authentication layers
+
+```
+┌─────────────────┐
+│   Public API    │  API Key auth (x-api-key header)
+│  /api/collect   │  → validates key hash in MongoDB
+├─────────────────┤
+│  Management API │  Clerk session auth
+│  /api/projects  │  → validates user identity
+│  /api/dashboard │  → enforces project ownership
+├─────────────────┤
+│   Dashboard UI  │  Clerk session auth
+│  /dashboard     │  → server-side render with auth check
+└─────────────────┘
+```
+
+## Data isolation
+
+- Users can only access projects they own (`ownerUserId` filter)
+- Dashboard queries always include ownership verification
+- There is no cross-tenant data access
+
+## Transport security
+
+- All data is transmitted over HTTPS in production
+- The SDK uses `keepalive: true` on fetch requests
+- `sendBeacon` is used for page unload to ensure delivery
+
+## Best practices
+
+1. **Use environment variables** for API keys — never hardcode
+2. **Use separate keys** per environment (dev/staging/prod)
+3. **Monitor key usage** via "Last used" in the dashboard
+4. **Don't log API keys** in application logs
+5. **Rotate keys** periodically and after team member departures

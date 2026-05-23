@@ -49,6 +49,9 @@ export type DashboardSummary = {
   totalEvents: number;
   pageviews: number;
   uniqueVisitors: number;
+  uniqueSessions: number;
+  avgSessionDurationMs: number;
+  bounceRate: number;
 };
 
 export type DashboardPoint = {
@@ -60,4 +63,51 @@ export type DashboardPoint = {
 export type TopPath = {
   path: string;
   views: number;
+};
+
+export type TopReferrer = {
+  referrer: string;
+  count: number;
+};
+
+export type BrowserBreakdown = {
+  browser: string;
+  count: number;
+};
+
+export type DeviceBreakdown = {
+  deviceType: string;
+  count: number;
+};
+
+export type EventBreakdown = {
+  name: string;
+  count: number;
+};
+
+export type HourlyHeatmapPoint = {
+  hour: number;
+  count: number;
+};
+
+export type RecentEvent = {
+  id: string;
+  name: string;
+  path?: string;
+  metadata?: Record<string, unknown>;
+  visitorId?: string;
+  occurredAt: Date;
+};
+
+export type DashboardData = {
+  summary: DashboardSummary;
+  timeline: DashboardPoint[];
+  topPaths: TopPath[];
+  topReferrers: TopReferrer[];
+  browserBreakdown: BrowserBreakdown[];
+  deviceBreakdown: DeviceBreakdown[];
+  eventBreakdown: EventBreakdown[];
+  hourlyHeatmap: HourlyHeatmapPoint[];
+  recentEvents: RecentEvent[];
+  liveVisitors: number;
 };

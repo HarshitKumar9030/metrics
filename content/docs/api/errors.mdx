@@ -1,0 +1,66 @@
+---
+title: "Errors & Troubleshooting"
+description: "Common error codes and how to resolve them."
+---
+
+## HTTP status codes
+
+| Code | Meaning | When |
+|---|---|---|
+| `200` | OK | Successful GET requests |
+| `201` | Created | Resource created (project, API key) |
+| `202` | Accepted | Events ingested successfully |
+| `400` | Bad Request | Invalid payload or query params |
+| `401` | Unauthorized | Missing/invalid API key or auth |
+| `404` | Not Found | Project not found or not owned |
+
+## Common errors
+
+### "Missing API key"
+
+**Cause**: No `x-api-key` header or `apiKey` query parameter on `/api/collect`.
+
+**Fix**: Ensure your SDK is configured with a valid API key:
+
+```ts
+const metrics = createMetricsClient("mtr_your_key_here");
+```
+
+### "Invalid API key"
+
+**Cause**: The API key doesn't match any active key in the database.
+
+**Fix**: Check that:
+1. The key hasn't been revoked
+2. You're using the full key (not the preview)
+3. The key belongs to the correct environment
+
+### "Invalid payload"
+
+**Cause**: The request body doesn't match the expected schema.
+
+**Fix**: Check the `details` field for specific validation errors:
+
+```json
+{
+  "error": "Invalid payload",
+  "details": {
+    "fieldErrors": {},
+    "formErrors": ["events: Required"]
+  }
+}
+```
+
+### Events not appearing in dashboard
+
+1. **Check the API key** — make sure it matches the project you're viewing
+2. **Check the endpoint** — verify your `endpoint` option points to the correct server
+3. **Enable debug mode** — set `debug: true` in SDK options to see console logs
+4. **Check the browser console** — look for network errors on `/api/collect`
+5. **Wait a moment** — events are batched and flushed every 3 seconds by default
+
+### SDK not tracking in production
+
+1. **Ad blockers** — some ad blockers block analytics requests. Consider using a custom domain/proxy
+2. **CSP headers** — ensure your Content Security Policy allows connections to `metrics.harshit.page`
+3. **CORS issues** — the API supports `*` origin but custom proxies may strip CORS headers

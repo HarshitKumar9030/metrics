@@ -1,0 +1,58 @@
+---
+title: "SDK Overview"
+description: "An overview of the harshit-metrics TypeScript SDK and its capabilities."
+---
+
+## What the SDK does
+
+The `harshit-metrics` SDK is a lightweight, zero-dependency TypeScript library that runs in any JavaScript environment. It handles:
+
+- **Event batching** — queues events and sends them in efficient batches
+- **Automatic retries** — exponential backoff on network failures
+- **Queue persistence** — survives page reloads via localStorage
+- **Lifecycle management** — flushes on page hide/unload via `sendBeacon`
+- **Auto-tracking** — pageviews, clicks, forms, scroll depth, errors, web vitals, SPA navigation
+- **Identity & attribution** — user identification, group analytics, UTM capture
+- **Device enrichment** — automatic screen, browser, OS, and connection metadata
+
+## Core concepts
+
+### MetricsClient
+
+The central class. Created via `createMetricsClient(apiKey, options)`. One instance per app is recommended.
+
+### Events
+
+Every interaction is an **event** with a `name` and optional `metadata`. Events are batched and flushed to the server periodically.
+
+### Context
+
+Global key-value data attached to every event. Set once, applied everywhere. Useful for user IDs, plan type, app version, etc.
+
+### Sessions & Visitors
+
+The SDK auto-generates:
+- **`visitorId`** — persistent across sessions (stored in localStorage)
+- **`sessionId`** — unique per browser session, rotates after 30min of inactivity
+
+## Quick example
+
+```ts
+import { createMetricsClient } from "harshit-metrics";
+
+const metrics = createMetricsClient("mtr_...", {
+  autoTrackPageviews: true,
+  autoTrackErrors: true,
+  autoTrackWebVitals: true,
+  autoTrackScrollDepth: true,
+});
+
+// Identify the user
+metrics.identify({ userId: "user_123", traits: { plan: "pro" } });
+
+// Track custom events
+metrics.track("feature_used", { metadata: { feature: "export" } });
+
+// Track revenue
+metrics.trackRevenue({ amount: 29.99, currency: "USD", orderId: "ord_456" });
+```

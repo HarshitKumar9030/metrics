@@ -1,33 +1,63 @@
 ---
 title: "Overview"
-description: "What Harshit Metrics is and how to use it end to end."
+description: "Harshit Metrics — a full-featured, self-hostable analytics platform with a TypeScript SDK."
 ---
 
-## Why this exists
+## What is Harshit Metrics?
 
-Harshit Metrics is a self-hostable analytics stack with:
+Harshit Metrics is a **privacy-first, self-hostable analytics platform** that gives you full control over your data. It ships with:
 
-- API-key based event ingestion
-- MongoDB storage
-- A dashboard for traffic and event exploration
-- A TypeScript SDK you can install in any web app
+- A **TypeScript SDK** (`harshit-metrics`) with auto-tracking for pageviews, clicks, scroll depth, errors, web vitals, and more
+- A **REST API** for event ingestion and dashboard data
+- A **real-time dashboard** with traffic timelines, referrers, browser/device breakdowns, session stats, and event feeds
+- **API-key isolation** per project for clean multi-app attribution
+- **MongoDB** storage with optimized aggregation pipelines
 
-## Flow
+## Architecture
 
-1. Sign in and create a project from `/dashboard`.
-2. Copy the generated API key.
-3. Install and initialize the SDK in your app.
-4. Track pageviews and custom events.
-5. Analyze results in the dashboard.
+```
+┌──────────────┐     POST /api/collect     ┌──────────────┐
+│  Your App    │  ──────────────────────►  │  Metrics API │
+│  (SDK)       │    x-api-key header       │  (Next.js)   │
+└──────────────┘                           └──────┬───────┘
+                                                  │
+                                                  ▼
+                                           ┌──────────────┐
+                                           │   MongoDB    │
+                                           └──────┬───────┘
+                                                  │
+                                                  ▼
+                                           ┌──────────────┐
+                                           │  Dashboard   │
+                                           │  (Next.js)   │
+                                           └──────────────┘
+```
 
-## Core endpoints
+## What Can You Track?
 
-- `POST /api/collect` for ingestion
-- `GET /api/dashboard?projectId=...` for analytics data
-- `GET /api/projects` and `POST /api/projects` for project management
+| Category | Events |
+|---|---|
+| **Page analytics** | Pageviews, SPA navigation, scroll depth, top pages |
+| **User behavior** | Clicks, form submissions, outbound links, engagement time |
+| **Performance** | Web Vitals (LCP, FID, CLS, FCP, TTFB) |
+| **Errors** | Unhandled exceptions, promise rejections |
+| **Business** | Revenue events, feature flag exposures, custom events |
+| **Identity** | User identification, group analytics, UTM attribution |
 
-## Security model
+## Quick Start
 
-- Dashboard + project APIs are protected with Clerk auth.
-- Ingestion stays public, but every request must send a valid API key.
-- API keys are stored hashed in MongoDB.
+```bash
+npm install harshit-metrics
+```
+
+```ts
+import { createMetricsClient } from "harshit-metrics";
+
+const metrics = createMetricsClient("mtr_your_api_key", {
+  autoTrackPageviews: true,
+  autoTrackErrors: true,
+  autoTrackWebVitals: true,
+});
+```
+
+→ Continue to [Getting Started](/docs/getting-started) for the full setup guide.

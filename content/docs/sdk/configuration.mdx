@@ -1,0 +1,83 @@
+---
+title: "Configuration"
+description: "All SDK options for customizing behavior, batching, retries, and auto-tracking."
+---
+
+## Full options reference
+
+```ts
+const metrics = createMetricsClient("mtr_your_key", {
+  // ── Connection ──
+  endpoint: "https://metrics.harshit.page/api/collect",
+
+  // ── Batching ──
+  flushIntervalMs: 3000,    // Flush every 3 seconds
+  maxBatchSize: 20,         // Max events per batch
+  maxQueueSize: 500,        // Max events in queue before dropping oldest
+
+  // ── Retries ──
+  retryCount: 3,            // Retry attempts per flush
+  retryBackoffMs: 500,      // Base backoff (doubles each retry)
+
+  // ── Persistence ──
+  persistQueue: true,       // Persist queue to localStorage
+  storageKey: "metrics-sdk", // localStorage key prefix
+
+  // ── Auto-tracking ──
+  autoTrackPageviews: true,      // Track pageviews on init
+  autoTrackRouteChanges: true,   // Track SPA route changes
+  autoTrackClicks: false,        // Track data-track-click elements
+  autoTrackOutbound: false,      // Track external link clicks
+  autoTrackForms: false,         // Track form submissions
+  autoTrackScrollDepth: false,   // Track scroll milestones
+  autoTrackErrors: false,        // Capture unhandled errors
+  autoTrackWebVitals: false,     // Capture Web Vitals
+
+  // ── Scroll depth ──
+  scrollThresholds: [25, 50, 75, 100], // Scroll percentages to track
+
+  // ── Enrichment ──
+  captureUtmParams: true,   // Auto-capture UTM parameters
+  enrichDeviceInfo: true,    // Add browser, OS, screen info
+
+  // ── Sessions ──
+  sessionTimeoutMs: 1800000, // 30 minutes session timeout
+
+  // ── Debug ──
+  debug: false,              // Log SDK activity to console
+
+  // ── Advanced ──
+  fetchImplementation: fetch, // Custom fetch for Node.js/testing
+  onError: (err) => {},       // Error callback
+});
+```
+
+## Option details
+
+### `endpoint`
+
+The URL of the Harshit Metrics ingestion API. Defaults to the hosted instance. Change this if you're self-hosting.
+
+### `flushIntervalMs`
+
+How often (in milliseconds) the SDK flushes queued events. Lower values = more real-time, but more network requests. Default: `3000`.
+
+### `maxBatchSize`
+
+Maximum events to include in a single HTTP request. If the queue grows beyond this, a flush is triggered immediately. Default: `20`.
+
+### `persistQueue`
+
+When `true`, events are saved to `localStorage`. If the user closes the page before a flush, events will be sent on the next page load. Default: `true`.
+
+### `autoTrackRouteChanges`
+
+When `true`, the SDK intercepts `history.pushState`, `history.replaceState`, and the `popstate` event to automatically fire pageview events on SPA navigation. Default: `true`.
+
+### `sessionTimeoutMs`
+
+After this many milliseconds of inactivity (no mouse, keyboard, scroll, or touch events), the current session ends and a new one begins. Default: `1800000` (30 minutes).
+
+### `enrichDeviceInfo`
+
+When `true`, every event is enriched with: `screenWidth`, `screenHeight`, `language`, `timezone`, `browser`, `os`, `deviceType`, and `connectionType`. Default: `true`.

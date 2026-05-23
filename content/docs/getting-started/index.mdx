@@ -1,0 +1,57 @@
+---
+title: "Quick Start"
+description: "Get up and running with Harshit Metrics in under 5 minutes."
+---
+
+## Prerequisites
+
+- A running instance of Harshit Metrics (or use the hosted version at `metrics.harshit.page`)
+- Node.js 18+ for SDK usage
+- A project with an API key (see [Your First Project](/docs/getting-started/your-first-project))
+
+## 1. Install the SDK
+
+```bash
+npm install harshit-metrics
+```
+
+## 2. Initialize the client
+
+Create a singleton client in your app:
+
+```ts
+import { createMetricsClient } from "harshit-metrics";
+
+export const metrics = createMetricsClient("mtr_your_api_key_here", {
+  endpoint: "https://metrics.harshit.page/api/collect",
+  autoTrackPageviews: true,
+});
+```
+
+## 3. Track custom events
+
+```ts
+metrics.track("button_clicked", {
+  metadata: {
+    buttonId: "hero-cta",
+    variant: "blue",
+  },
+});
+```
+
+## 4. View your data
+
+Open the [Dashboard](/dashboard), select your project, and watch events flow in. The dashboard shows:
+
+- **Traffic timeline** — events and pageviews over time
+- **Top pages** — most visited paths
+- **Top referrers** — where your traffic comes from
+- **Browser & device breakdown** — visitor technology distribution
+- **Custom events** — your tracked business events
+- **Live visitors** — real-time active user count
+
+## Next steps
+
+- [Installation details](/docs/getting-started/installation) — all install methods and environments
+- [SDK Configuration](/docs/sdk/configuration) — fine-tune batching, retries, and auto-tracking
+- [Auto-tracking](/docs/sdk/auto-tracking) — enable click, scroll, error, and web vitals tracking

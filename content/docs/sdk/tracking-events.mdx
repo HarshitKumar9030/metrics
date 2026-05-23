@@ -1,0 +1,82 @@
+---
+title: "Tracking Events"
+description: "Track pageviews, custom events, and attach metadata."
+---
+
+## `track(name, event?)`
+
+The core method. Every interaction is an event with a `name` and optional data.
+
+```ts
+metrics.track("button_clicked", {
+  metadata: {
+    buttonId: "hero-cta",
+    variant: "blue",
+    page: "/pricing",
+  },
+});
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `name` | `string` | Event name (e.g., `signup_clicked`, `purchase_complete`) |
+| `event.metadata` | `Record<string, any>` | Key-value pairs attached to this event |
+| `event.path` | `string` | Override auto-detected page path |
+| `event.url` | `string` | Override auto-detected full URL |
+| `event.referrer` | `string` | Override auto-detected referrer |
+
+### Auto-enrichment
+
+Every `track()` call automatically includes:
+
+- **`path`** — current page path (`window.location.pathname`)
+- **`url`** — full URL (`window.location.href`)
+- **`referrer`** — document referrer
+- **`sessionId`** — current session identifier
+- **`visitorId`** — persistent visitor identifier
+- **`occurredAt`** — ISO 8601 timestamp
+- **Device info** — browser, OS, screen size, language, timezone (if `enrichDeviceInfo` is on)
+- **UTM parameters** — utm_source, utm_medium, etc. (if `captureUtmParams` is on)
+- **Context** — any global context set via `setContext()`
+- **User properties** — any properties set via `setUserProperties()`
+
+## `trackPageview(metadata?)`
+
+Tracks a `pageview` event with viewport dimensions and page title.
+
+```ts
+metrics.trackPageview();
+
+// With extra metadata
+metrics.trackPageview({ section: "blog", category: "tech" });
+```
+
+This is called automatically on initialization if `autoTrackPageviews` is `true`.
+
+## Metadata best practices
+
+- Use **consistent naming**: `snake_case` event names, lowercase metadata keys
+- Keep metadata **flat** when possible — nested objects are supported but harder to query
+- Don't include **PII** (emails, passwords) in metadata
+- Use **bounded cardinality** — avoid using unique IDs as metadata values (use `identify()` for user-specific data)
+
+## Examples
+
+```ts
+// E-commerce
+metrics.track("product_viewed", {
+  metadata: { productId: "sku_123", category: "shoes", price: 89.99 },
+});
+
+// SaaS
+metrics.track("feature_used", {
+  metadata: { feature: "export_csv", plan: "pro" },
+});
+
+// Content
+metrics.track("article_read", {
+  metadata: { articleId: "post_456", readTimeMs: 45000 },
+});
+```

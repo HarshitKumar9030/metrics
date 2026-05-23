@@ -35,10 +35,10 @@ export function ProjectSwitcher({
     <div className="relative" ref={containerRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex h-8 w-[180px] items-center justify-between rounded-md border border-[color:var(--border)] bg-[color:var(--surface-2)] px-3 text-sm text-[color:var(--text)] transition-colors hover:bg-[color:var(--surface-3)]"
+        className="flex h-8 w-[180px] items-center justify-between rounded-md border border-white/[0.08] bg-white/[0.02] px-3 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.04]"
       >
         <span className="truncate">{selectedProject?.name ?? "Select project..."}</span>
-        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        <ChevronsUpDown className="ml-2 h-3.5 w-3.5 shrink-0 text-zinc-500" />
       </button>
 
       <AnimatePresence>
@@ -48,7 +48,7 @@ export function ProjectSwitcher({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -5, scale: 0.95 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute left-0 top-[calc(100%+4px)] z-50 w-full min-w-[180px] overflow-hidden rounded-md border border-[color:var(--border)] bg-black shadow-lg backdrop-blur-xl"
+            className="absolute left-0 top-[calc(100%+4px)] z-50 w-full min-w-[180px] overflow-hidden rounded-md border border-white/[0.08] bg-[#111111]/90 shadow-xl backdrop-blur-xl"
           >
             <div className="p-1">
               {projects.map((project) => (
@@ -61,11 +61,11 @@ export function ProjectSwitcher({
                     router.push(`/dashboard?${params.toString()}`);
                     setIsOpen(false);
                   }}
-                  className="flex w-full cursor-pointer items-center justify-between rounded-sm px-2 py-1.5 text-sm transition-colors hover:bg-neutral-800"
+                  className="flex w-full cursor-pointer items-center justify-between rounded-[4px] px-2 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/[0.04] hover:text-zinc-100"
                 >
                   <span className="truncate">{project.name}</span>
                   {selectedProjectId === project.id && (
-                    <Check className="ml-2 h-4 w-4 shrink-0 text-white" />
+                    <Check className="ml-2 h-3.5 w-3.5 shrink-0 text-emerald-400" />
                   )}
                 </button>
               ))}
@@ -76,3 +76,4 @@ export function ProjectSwitcher({
     </div>
   );
 }
+

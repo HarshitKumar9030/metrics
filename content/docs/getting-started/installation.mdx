@@ -1,0 +1,76 @@
+---
+title: "Installation"
+description: "Install the harshit-metrics SDK in your project."
+---
+
+## Package managers
+
+```bash title="npm"
+npm install harshit-metrics
+```
+
+```bash title="yarn"
+yarn add harshit-metrics
+```
+
+```bash title="pnpm"
+pnpm add harshit-metrics
+```
+
+```bash title="bun"
+bun add harshit-metrics
+```
+
+## Bundle formats
+
+The SDK ships as:
+
+| Format | File | Usage |
+|---|---|---|
+| ESM | `dist/index.mjs` | Modern bundlers (Vite, Next.js, etc.) |
+| CJS | `dist/index.cjs` | Node.js / CommonJS environments |
+| Types | `dist/index.d.ts` | TypeScript autocompletion |
+
+Your bundler will automatically pick the right format via the `exports` field in `package.json`.
+
+## Environment requirements
+
+- **Browser**: Any modern browser (Chrome 80+, Firefox 78+, Safari 14+, Edge 80+)
+- **Node.js**: 18+ (for server-side usage with a custom `fetchImplementation`)
+- **TypeScript**: 5.0+ (optional, but recommended)
+
+## SSR / Server-side rendering
+
+The SDK is SSR-safe. All browser-specific APIs (`window`, `document`, `localStorage`, etc.) are guarded behind runtime checks. You can safely import and instantiate the client in Next.js, Nuxt, or any SSR framework — browser-only features simply become no-ops on the server.
+
+```ts
+// This is safe in Next.js server components / getServerSideProps
+import { createMetricsClient } from "harshit-metrics";
+
+// Won't crash on server — auto-tracking features are skipped
+const metrics = createMetricsClient("mtr_...", {
+  autoTrackPageviews: false, // disable for SSR
+});
+```
+
+## Singleton pattern (recommended)
+
+Create one file that exports your metrics client, then import it everywhere:
+
+```ts title="lib/metrics.ts"
+import { createMetricsClient } from "harshit-metrics";
+
+export const metrics = createMetricsClient("mtr_your_key", {
+  endpoint: "https://metrics.harshit.page/api/collect",
+  autoTrackPageviews: true,
+  autoTrackErrors: true,
+  autoTrackWebVitals: true,
+  debug: process.env.NODE_ENV === "development",
+});
+```
+
+```ts title="app/page.tsx"
+import { metrics } from "@/lib/metrics";
+
+metrics.track("page_loaded", { metadata: { section: "hero" } });
+```

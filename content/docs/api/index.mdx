@@ -1,0 +1,55 @@
+---
+title: "API Overview"
+description: "REST API overview for Harshit Metrics."
+---
+
+## Base URL
+
+```
+https://metrics.harshit.page
+```
+
+Or your self-hosted domain.
+
+## Endpoints
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| `POST` | `/api/collect` | API Key | Ingest events |
+| `GET` | `/api/dashboard` | Clerk | Get dashboard analytics data |
+| `GET` | `/api/projects` | Clerk | List all projects |
+| `POST` | `/api/projects` | Clerk | Create a new project |
+| `GET` | `/api/projects/keys` | Clerk | List API keys for a project |
+| `POST` | `/api/projects/keys` | Clerk | Create a new API key |
+
+## Authentication methods
+
+The API uses **two authentication methods** depending on the endpoint:
+
+### API Key (for ingestion)
+
+The `/api/collect` endpoint accepts an API key via:
+- `x-api-key` header (recommended)
+- `apiKey` query parameter (for `sendBeacon` fallback)
+
+### Clerk Auth (for management)
+
+All other endpoints require a valid Clerk session. These are used by the dashboard UI.
+
+## Response format
+
+All responses are JSON. Successful responses return the data directly. Error responses follow this format:
+
+```json
+{
+  "error": "Human-readable error message",
+  "details": { /* validation details, if applicable */ }
+}
+```
+
+## CORS
+
+The `/api/collect` endpoint supports CORS with:
+- `Access-Control-Allow-Origin: *`
+- `Access-Control-Allow-Methods: POST, OPTIONS`
+- `Access-Control-Allow-Headers: content-type, x-api-key`

@@ -1,0 +1,60 @@
+---
+title: "Authentication"
+description: "How API keys and Clerk auth work in Harshit Metrics."
+---
+
+## API Key model
+
+API keys are the primary authentication for event ingestion. They follow these principles:
+
+### Format
+
+Keys are generated as `mtr_` followed by 48 hex characters:
+
+```
+mtr_a1b2c3d4e5f6789012345678901234567890abcdef01
+```
+
+### Storage
+
+Keys are **never stored in plaintext**. The system stores:
+- A SHA-256 hash of `key:pepper` for lookup
+- A preview (`mtr_a1b2...ef01`) for display in the dashboard
+
+### Lifecycle
+
+1. **Creation**: Generated when a project is created, or via the "Create API Key" dialog
+2. **Usage**: Sent with every request to `/api/collect`
+3. **Rotation**: Create a new key → migrate your apps → revoke the old key
+4. **Revocation**: Revoked keys immediately stop accepting events
+
+### Security best practices
+
+- **Never commit API keys** to source control. Use environment variables.
+- **Use separate keys** for production and development
+- **Rotate keys periodically** for production apps
+- **Monitor "Last used"** in the dashboard to detect stale keys
+
+## Clerk authentication
+
+The dashboard and management APIs use [Clerk](https://clerk.com) for authentication. This provides:
+
+- Email/password and social sign-in
+- Session management with secure cookies
+- User isolation — each user only sees their own projects
+
+### Protected routes
+
+```
+/dashboard/**  → requires Clerk authentication
+/api/projects  → requires Clerk authentication
+/api/dashboard → requires Clerk authentication
+```
+
+### Public routes
+
+```
+/              → landing page (public)
+/docs/**       → documentation (public)
+/api/collect   → event ingestion (API key auth, no Clerk)
+```

@@ -1,0 +1,73 @@
+---
+title: "Events"
+description: "Understanding the event model in Harshit Metrics."
+---
+
+## What is an event?
+
+An event is a single recorded interaction or occurrence. Every piece of data in Harshit Metrics is an event.
+
+## Event structure
+
+```json
+{
+  "name": "pageview",
+  "path": "/pricing",
+  "url": "https://example.com/pricing",
+  "referrer": "https://google.com",
+  "metadata": {
+    "viewportWidth": 1920,
+    "browser": "Chrome",
+    "plan": "pro"
+  },
+  "sessionId": "s_abc123",
+  "visitorId": "v_xyz890",
+  "occurredAt": "2026-05-23T10:30:00.000Z"
+}
+```
+
+## Event types
+
+### System events (auto-tracked)
+
+| Name | Description | Tracked by |
+|---|---|---|
+| `pageview` | Page loaded or SPA navigation | `autoTrackPageviews`, `autoTrackRouteChanges` |
+| `scroll_depth` | User scrolled past a threshold | `autoTrackScrollDepth` |
+| `error` | Unhandled JavaScript error | `autoTrackErrors` |
+| `unhandled_rejection` | Unhandled promise rejection | `autoTrackErrors` |
+| `web_vital` | Performance metric (LCP, FID, etc.) | `autoTrackWebVitals` |
+| `outbound_click` | Click on external link | `autoTrackOutbound` |
+| `form_submit` | Form submission | `autoTrackForms` |
+| `session_end` | Session ended (with duration) | Automatic on page hide/timeout |
+
+### Identity events
+
+| Name | Description |
+|---|---|
+| `identify` | User identified via `identify()` |
+| `group` | Group associated via `group()` |
+
+### Business events (your custom events)
+
+| Name | Description |
+|---|---|
+| `revenue` | Revenue tracked via `trackRevenue()` |
+| `feature_flag` | Feature flag tracked via `trackFeatureFlag()` |
+| Any custom name | Tracked via `track("your_event_name")` |
+
+## Naming conventions
+
+- Use `snake_case` for event names
+- Be specific: `signup_form_submitted` > `form_submitted`
+- Use a verb: `button_clicked`, `plan_upgraded`, `file_exported`
+- Keep cardinality bounded — don't use unique IDs in event names
+
+## Metadata
+
+Metadata is a flat or nested key-value object attached to each event. It's where you store the "what" and "why" behind an event.
+
+Best practices:
+- Keep keys consistent across events
+- Use primitive values (strings, numbers, booleans) when possible
+- Don't store PII (emails, passwords, phone numbers)

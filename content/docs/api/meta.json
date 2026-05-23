@@ -1,0 +1,4 @@
+{
+  "title": "API Reference",
+  "pages": ["index", "authentication", "collect", "projects", "dashboard-api", "errors"]
+}

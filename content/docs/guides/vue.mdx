@@ -1,0 +1,93 @@
+---
+title: "Vue Integration"
+description: "Add Harshit Metrics to a Vue.js application."
+---
+
+## Setup
+
+### 1. Install
+
+```bash
+npm install harshit-metrics
+```
+
+### 2. Create the client
+
+```ts title="src/lib/metrics.ts"
+import { createMetricsClient } from "harshit-metrics";
+
+export const metrics = createMetricsClient(import.meta.env.VITE_METRICS_KEY, {
+  endpoint: "https://metrics.harshit.page/api/collect",
+  autoTrackPageviews: true,
+  autoTrackRouteChanges: true,
+  autoTrackErrors: true,
+});
+```
+
+### 3. Create a Vue plugin
+
+```ts title="src/plugins/metrics.ts"
+import type { App } from "vue";
+import { metrics } from "@/lib/metrics";
+
+export const metricsPlugin = {
+  install(app: App) {
+    app.config.globalProperties.$metrics = metrics;
+    app.provide("metrics", metrics);
+  },
+};
+```
+
+### 4. Register the plugin
+
+```ts title="src/main.ts"
+import { createApp } from "vue";
+import App from "./App.vue";
+import { metricsPlugin } from "./plugins/metrics";
+
+const app = createApp(App);
+app.use(metricsPlugin);
+app.mount("#app");
+```
+
+### 5. Use in components
+
+```vue title="src/components/CTAButton.vue"
+<script setup lang="ts">
+import { inject } from "vue";
+import type { MetricsClient } from "harshit-metrics";
+
+const metrics = inject<MetricsClient>("metrics")!;
+
+function handleClick() {
+  metrics.track("cta_clicked", {
+    metadata: { variant: "primary" },
+  });
+}
+</script>
+
+<template>
+  <button @click="handleClick">Get Started</button>
+</template>
+```
+
+## With Vue Router
+
+SPA route changes are tracked automatically. No additional Vue Router hooks needed.
+
+## Nuxt
+
+For Nuxt 3, create a plugin in `plugins/metrics.client.ts`:
+
+```ts title="plugins/metrics.client.ts"
+import { createMetricsClient } from "harshit-metrics";
+
+export default defineNuxtPlugin(() => {
+  const metrics = createMetricsClient(useRuntimeConfig().public.metricsKey, {
+    autoTrackPageviews: true,
+    autoTrackRouteChanges: true,
+  });
+
+  return { provide: { metrics } };
+});
+```

@@ -1,0 +1,80 @@
+---
+title: "Revenue & Feature Flags"
+description: "Track revenue events and feature flag exposures for analytics."
+---
+
+## Revenue tracking
+
+Track financial transactions with structured data.
+
+### `trackRevenue(payload)`
+
+```ts
+metrics.trackRevenue({
+  amount: 49.99,
+  currency: "USD",
+  orderId: "ord_abc123",
+  productId: "plan_pro",
+  metadata: {
+    coupon: "LAUNCH20",
+    billingPeriod: "annual",
+  },
+});
+```
+
+### Parameters
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `amount` | `number` | ✅ | Transaction amount |
+| `currency` | `string` | ✅ | ISO currency code (USD, EUR, INR, etc.) |
+| `orderId` | `string` | No | Your order/transaction ID |
+| `productId` | `string` | No | Product or plan identifier |
+| `metadata` | `object` | No | Additional key-value data |
+
+**Event fired**: `revenue`
+
+### Use cases
+
+- **Subscription payments**: Track plan upgrades, renewals, downgrades
+- **E-commerce**: Track purchases, refunds
+- **In-app purchases**: Track virtual goods, credits
+
+## Feature flag tracking
+
+Track which feature flag variants users are exposed to. Essential for A/B testing analysis.
+
+### `trackFeatureFlag(flagName, variant, metadata?)`
+
+```ts
+metrics.trackFeatureFlag("new_checkout_flow", "variant_b", {
+  source: "launchdarkly",
+});
+```
+
+### Parameters
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `flagName` | `string` | ✅ | The name of the feature flag |
+| `variant` | `string` | ✅ | The variant assigned to this user |
+| `metadata` | `object` | No | Additional context |
+
+**Event fired**: `feature_flag`
+
+### Example: A/B test with conversion tracking
+
+```ts
+// Record the variant exposure
+metrics.trackFeatureFlag("pricing_page_redesign", "control");
+
+// Later, when the user converts
+metrics.track("plan_selected", {
+  metadata: {
+    plan: "pro",
+    pricingVariant: "control",
+  },
+});
+```
+
+You can then analyze conversion rates per variant in your dashboard by filtering events by the `flagName` metadata.

@@ -1,0 +1,128 @@
+---
+title: "API Reference"
+description: "Complete method reference for the harshit-metrics SDK."
+---
+
+## `createMetricsClient(apiKey, options?)`
+
+Factory function that creates a new `MetricsClient` instance.
+
+```ts
+const metrics = createMetricsClient("mtr_your_key", { debug: true });
+```
+
+---
+
+## Core Methods
+
+### `track(name, event?)`
+Track a custom event.
+- **name** `string` — Event name
+- **event.metadata** `Record<string, any>` — Custom data
+- **event.path** `string` — Override path
+- **event.url** `string` — Override URL
+- **event.referrer** `string` — Override referrer
+
+### `trackPageview(metadata?)`
+Track a pageview with viewport info.
+- **metadata** `Record<string, any>` — Extra data
+
+### `flush(options?)`
+Manually flush the event queue.
+- **options.useBeacon** `boolean` — Use `sendBeacon` instead of `fetch`
+- **Returns**: `Promise<{ accepted: number, failed: number }>`
+
+### `shutdown()`
+Stop all tracking, flush remaining events.
+- **Returns**: `Promise<void>`
+
+---
+
+## Identity Methods
+
+### `identify(payload)`
+Associate events with a user.
+- **payload.userId** `string` — Unique user identifier
+- **payload.traits** `Record<string, any>` — User attributes
+
+### `group(payload)`
+Associate events with a group/org.
+- **payload.groupId** `string` — Group identifier
+- **payload.traits** `Record<string, any>` — Group attributes
+
+### `setContext(context)`
+Set global context merged into all events.
+
+### `clearContext()`
+Remove all global context.
+
+### `setUserProperties(props)`
+Set persistent user properties.
+
+### `clearUserProperties()`
+Remove all user properties.
+
+---
+
+## Tracking Methods
+
+### `trackRevenue(payload)`
+Track a revenue event.
+- **payload.amount** `number` — Transaction amount
+- **payload.currency** `string` — ISO currency code
+- **payload.orderId** `string` — Order identifier
+- **payload.productId** `string` — Product identifier
+- **payload.metadata** `Record<string, any>` — Extra data
+
+### `trackFeatureFlag(flagName, variant, metadata?)`
+Track a feature flag exposure.
+- **flagName** `string` — Flag name
+- **variant** `string` — Assigned variant
+- **metadata** `Record<string, any>` — Extra data
+
+### `trackEngagement(selector, eventName?)`
+Track element visibility time using IntersectionObserver.
+- **selector** `string` — CSS selector
+- **eventName** `string` — Event name (default: `element_visible`)
+- **Returns**: `() => void` — Cleanup function
+
+---
+
+## Timing Methods
+
+### `startTimer()`
+Returns a timestamp (`number`) to use with `trackTiming`.
+
+### `trackTiming(name, startedAt, event?)`
+Track a timing measurement.
+- **name** `string` — Event name
+- **startedAt** `number` — From `startTimer()`
+- Adds `durationMs` to metadata automatically.
+
+---
+
+## Types
+
+```ts
+type MetricsSdkOptions = { /* see Configuration page */ };
+type MetricsEvent = {
+  name: string;
+  path?: string;
+  url?: string;
+  referrer?: string;
+  metadata?: Record<string, any>;
+  sessionId?: string;
+  visitorId?: string;
+  occurredAt?: string;
+};
+type IdentifyPayload = { userId: string; traits?: Record<string, any> };
+type GroupPayload = { groupId: string; traits?: Record<string, any> };
+type RevenuePayload = {
+  amount: number;
+  currency: string;
+  orderId?: string;
+  productId?: string;
+  metadata?: Record<string, any>;
+};
+type FlushResult = { accepted: number; failed: number };
+```

@@ -1,0 +1,93 @@
+---
+title: "SPA Support"
+description: "Automatic route change tracking for React, Next.js, Vue, and other SPAs."
+---
+
+## How it works
+
+Single-page applications navigate without full page reloads. The SDK detects navigation by intercepting:
+
+1. **`history.pushState()`** — used by most SPA routers
+2. **`history.replaceState()`** — used for silent URL updates
+3. **`popstate` event** — fired when the user presses back/forward
+
+When a navigation is detected, the SDK automatically fires a `pageview` event with `navigationType: "spa"` in the metadata.
+
+## Enabling SPA tracking
+
+SPA route tracking is **enabled by default**:
+
+```ts
+const metrics = createMetricsClient("mtr_...", {
+  autoTrackRouteChanges: true, // default
+});
+```
+
+## Framework-specific notes
+
+### Next.js (App Router)
+
+The SDK works out of the box. Next.js uses `pushState` internally, so route changes are detected automatically.
+
+```ts title="lib/metrics.ts"
+import { createMetricsClient } from "harshit-metrics";
+
+export const metrics = createMetricsClient("mtr_...", {
+  autoTrackPageviews: true,
+  autoTrackRouteChanges: true,
+});
+```
+
+```tsx title="app/layout.tsx"
+"use client";
+import { useEffect } from "react";
+
+export function MetricsProvider({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    // Import dynamically to avoid SSR issues
+    import("@/lib/metrics");
+  }, []);
+  return <>{children}</>;
+}
+```
+
+### React (React Router)
+
+React Router v6 uses `pushState` under the hood. The SDK detects changes automatically.
+
+### Vue (Vue Router)
+
+Vue Router also uses `pushState`. No extra configuration needed.
+
+### Nuxt
+
+Same as Vue — works out of the box.
+
+## Disabling SPA tracking
+
+If you prefer to manually track navigations:
+
+```ts
+const metrics = createMetricsClient("mtr_...", {
+  autoTrackRouteChanges: false,
+});
+
+// Manually track when you want
+router.afterEach((to) => {
+  metrics.trackPageview({ routeName: to.name });
+});
+```
+
+## Engagement tracking
+
+Track how long elements are visible on screen using `IntersectionObserver`:
+
+```ts
+// Returns a cleanup function
+const stop = metrics.trackEngagement(".hero-section", "hero_visible");
+
+// Stop tracking when component unmounts
+stop();
+```
+
+This fires events with `visibleMs` metadata when the element exits the viewport.

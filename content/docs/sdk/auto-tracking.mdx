@@ -1,0 +1,109 @@
+---
+title: "Auto-Tracking"
+description: "Automatically track clicks, forms, scroll depth, errors, and Web Vitals."
+---
+
+## Overview
+
+The SDK can automatically track common user interactions without writing any custom code. Enable them via options:
+
+```ts
+const metrics = createMetricsClient("mtr_...", {
+  autoTrackClicks: true,
+  autoTrackOutbound: true,
+  autoTrackForms: true,
+  autoTrackScrollDepth: true,
+  autoTrackErrors: true,
+  autoTrackWebVitals: true,
+});
+```
+
+## Click tracking
+
+**Option**: `autoTrackClicks: true`
+
+Tracks clicks on any element with a `data-track-click` attribute. The attribute value becomes the event name.
+
+```html
+<button data-track-click="signup_cta">Sign Up</button>
+<a data-track-click="nav_pricing" href="/pricing">Pricing</a>
+```
+
+**Event fired**: The value of `data-track-click` (e.g., `signup_cta`)
+
+**Metadata**: `tagName`, `text` (first 100 chars), `id`
+
+## Outbound link tracking
+
+**Option**: `autoTrackOutbound: true`
+
+Automatically detects and tracks clicks on links pointing to external domains.
+
+**Event fired**: `outbound_click`
+
+**Metadata**: `href`, `text`
+
+## Form submission tracking
+
+**Option**: `autoTrackForms: true`
+
+Tracks all `<form>` submissions on the page.
+
+**Event fired**: `form_submit`
+
+**Metadata**: `formId`, `formName`, `formAction`, `formMethod`
+
+> Note: Form field values are NOT captured to avoid accidentally collecting PII.
+
+## Scroll depth tracking
+
+**Option**: `autoTrackScrollDepth: true`
+
+Fires events when the user scrolls past configurable thresholds.
+
+```ts
+createMetricsClient("mtr_...", {
+  autoTrackScrollDepth: true,
+  scrollThresholds: [25, 50, 75, 100], // default
+});
+```
+
+**Event fired**: `scroll_depth`
+
+**Metadata**: `threshold` (the milestone hit), `percent` (actual scroll %)
+
+Each threshold fires only once per page load.
+
+## Error tracking
+
+**Option**: `autoTrackErrors: true`
+
+Captures unhandled JavaScript errors and unhandled promise rejections.
+
+**Events fired**:
+- `error` — for `window.onerror` events
+- `unhandled_rejection` — for `unhandledrejection` events
+
+**Metadata**: `message`, `filename`, `lineno`, `colno`, `stack` (first 500 chars)
+
+## Web Vitals tracking
+
+**Option**: `autoTrackWebVitals: true`
+
+Captures Core Web Vitals and other performance metrics using the `PerformanceObserver` API. Zero external dependencies.
+
+**Event fired**: `web_vital`
+
+**Metrics captured**:
+
+| Metric | Description | Unit |
+|---|---|---|
+| **LCP** | Largest Contentful Paint | ms |
+| **FID** | First Input Delay | ms |
+| **CLS** | Cumulative Layout Shift | score × 1000 |
+| **FCP** | First Contentful Paint | ms |
+| **TTFB** | Time to First Byte | ms |
+
+**Metadata**: `metric` (name), `value` (numeric value)
+
+CLS is reported when the page becomes hidden (as recommended by web.dev).
