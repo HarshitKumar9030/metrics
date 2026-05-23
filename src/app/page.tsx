@@ -69,7 +69,7 @@ export default function Home() {
             <div className="mt-12 flex flex-wrap items-center gap-4">
               <Button asChild size="lg" className="rounded-md font-semibold text-sm bg-transparent hover:bg-black/5 dark:hover:bg-white/5 border border-black/20 dark:border-white/20 text-neutral-900 dark:text-white tracking-widest px-8 shadow-[0_0_20px_rgba(0,0,0,0.05)] dark:shadow-[0_0_20px_rgba(255,255,255,0.05)] uppercase transition-all duration-300">
                 <Link href="/dashboard" prefetch={false}>
-                  Work with us
+                  Dashboard
                 </Link>
               </Button>
               <SignedIn>
