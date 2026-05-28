@@ -80,4 +80,7 @@ After this many milliseconds of inactivity (no mouse, keyboard, scroll, or touch
 
 ### `enrichDeviceInfo`
 
-When `true`, every event is enriched with: `screenWidth`, `screenHeight`, `language`, `timezone`, `browser`, `os`, `deviceType`, and `connectionType`. Default: `true`.
+When `true`, every event is enriched with client-side metrics: `screenWidth`, `screenHeight`, `language`, `timezone`, `browser`, `os`, `deviceType`, and `connectionType`. Default: `true`.
+
+> **Reliability Note**: For maximum robustness, Harshit Metrics also parses `browser`, `os`, and `deviceType` server-side from the HTTP `User-Agent` header, and resolves `country`, `city`, and `region` using Edge Geo-IP headers. This ensures browser and device analytics populate even if client-side telemetry is disabled or blocked.
+

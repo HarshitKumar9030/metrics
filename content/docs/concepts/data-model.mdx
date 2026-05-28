@@ -59,8 +59,14 @@ Stores all ingested events.
   sessionId?: string,     // Session identifier
   visitorId?: string,     // Visitor identifier
   occurredAt: Date,       // When the event happened
-  ip?: string,            // Client IP (from x-forwarded-for)
+  ip?: string,            // Client IP (from x-forwarded-for or connection)
   userAgent?: string,     // Client User-Agent
+  browser?: string,       // Server-side parsed browser name
+  os?: string,            // Server-side parsed OS name
+  deviceType?: string,    // Server-side parsed device category (desktop, mobile, tablet)
+  country?: string,       // Vercel-resolved 2-letter country code
+  city?: string,          // Vercel-resolved city name
+  region?: string,        // Vercel-resolved region code
   createdAt: Date         // When the server received it
 }
 ```
@@ -70,6 +76,8 @@ Stores all ingested events.
 - `{ projectId: 1, name: 1, occurredAt: -1 }` — event type queries
 - `{ projectId: 1, "metadata.referrer": 1, occurredAt: -1 }` — referrer analysis
 - `{ projectId: 1, visitorId: 1, sessionId: 1, occurredAt: -1 }` — session analysis
+- `{ projectId: 1, country: 1, occurredAt: -1 }` — country breakdown performance
+- `{ projectId: 1, browser: 1, occurredAt: -1 }` — browser breakdown performance
 
 ## Aggregation pipeline
 
@@ -78,7 +86,8 @@ The dashboard uses MongoDB aggregation pipelines to compute analytics in real-ti
 - **Summary stats**: `$group` with `$sum`, `$addToSet`, `$size`
 - **Timeline**: `$dateToString` + `$group` by day
 - **Top pages/referrers**: `$group` + `$sort` + `$limit`
-- **Browser/device breakdown**: `$group` on `metadata.browser` / `metadata.deviceType`
+- **Browser/device/OS breakdown**: `$group` on server-side parsed fields `browser`, `deviceType`, `os` with safe fallbacks to legacy client-side metadata fields using `$ifNull`
+- **Country breakdown**: `$group` on `country` with percentage calculations
 - **Hourly heatmap**: `$hour` extraction + `$group`
 - **Bounce rate**: Two-stage `$group` (sessions → single-pageview ratio)
 - **Session duration**: `$avg` on `session_end` event durations
