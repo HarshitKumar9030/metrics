@@ -9,6 +9,8 @@ import {
   Clock,
   Eye,
   Globe,
+  Laptop,
+  MapPin,
   Monitor,
   MousePointerClick,
   Radio,
@@ -16,6 +18,7 @@ import {
   Users,
   Zap,
 } from "lucide-react";
+import { countryCodeToFlag, countryCodeToName } from "@/lib/ua-parser";
 import { CreateApiKeyDialog } from "@/components/dashboard/create-api-key-dialog";
 import { CreateProjectDialog } from "@/components/dashboard/create-project-dialog";
 import { ProjectSwitcher } from "@/components/dashboard/project-switcher";
@@ -129,8 +132,8 @@ export default async function DashboardPage({
           </FadeIn>
         </section>
 
-        {/* Referrers + Browser/Device */}
-        <section className="grid gap-4 md:grid-cols-3">
+        {/* Referrers + Countries */}
+        <section className="grid gap-4 md:grid-cols-2">
           <FadeIn>
             <LinearCard icon={<Globe className="h-3.5 w-3.5" />} title="Top referrers">
               {data.topReferrers.length === 0 ? (
@@ -149,9 +152,41 @@ export default async function DashboardPage({
           </FadeIn>
 
           <FadeIn>
+            <LinearCard icon={<MapPin className="h-3.5 w-3.5" />} title="Countries">
+              {data.countryBreakdown.length === 0 ? (
+                <EmptyState message="No country data yet. Deploy to Vercel for automatic geo detection." />
+              ) : (
+                <div className="mt-4 space-y-2">
+                  {data.countryBreakdown.map((c) => {
+                    const total = data.countryBreakdown.reduce((s, x) => s + x.count, 0);
+                    const pct = total > 0 ? Math.round((c.count / total) * 100) : 0;
+                    return (
+                      <div key={c.country} className="group flex items-center justify-between gap-3 text-sm rounded-md hover:bg-white/[0.02] -mx-2 px-2 py-1.5 transition-colors">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="text-base leading-none">{countryCodeToFlag(c.country)}</span>
+                          <span className="truncate text-zinc-300 font-medium">{countryCodeToName(c.country)}</span>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <div className="w-16 h-1 rounded-full bg-white/5 overflow-hidden hidden sm:block">
+                            <div className="h-full bg-zinc-400 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+                          </div>
+                          <span className="tabular-nums text-zinc-500 font-mono text-xs w-6 text-right">{pct}%</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </LinearCard>
+          </FadeIn>
+        </section>
+
+        {/* Browsers + Devices + OS */}
+        <section className="grid gap-4 md:grid-cols-3">
+          <FadeIn>
             <LinearCard icon={<Monitor className="h-3.5 w-3.5" />} title="Browsers">
               {data.browserBreakdown.length === 0 ? (
-                <EmptyState message="No browser data." />
+                <EmptyState message="No browser data yet." />
               ) : (
                 <div className="mt-5 space-y-4">
                   {data.browserBreakdown.map((b) => {
@@ -177,7 +212,7 @@ export default async function DashboardPage({
           <FadeIn>
             <LinearCard icon={<Activity className="h-3.5 w-3.5" />} title="Devices">
               {data.deviceBreakdown.length === 0 ? (
-                <EmptyState message="No device data." />
+                <EmptyState message="No device data yet." />
               ) : (
                 <div className="mt-5 space-y-4">
                   {data.deviceBreakdown.map((d) => {
@@ -187,6 +222,32 @@ export default async function DashboardPage({
                       <div key={d.deviceType} className="space-y-1.5">
                         <div className="flex items-center justify-between text-xs font-medium">
                           <span className="text-zinc-300 capitalize">{d.deviceType}</span>
+                          <span className="tabular-nums text-zinc-500">{pct}%</span>
+                        </div>
+                        <div className="h-0.5 w-full overflow-hidden rounded-full bg-white/5">
+                          <div className="h-full bg-zinc-400 transition-all duration-500" style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </LinearCard>
+          </FadeIn>
+
+          <FadeIn>
+            <LinearCard icon={<Laptop className="h-3.5 w-3.5" />} title="Operating Systems">
+              {data.osBreakdown.length === 0 ? (
+                <EmptyState message="No OS data yet." />
+              ) : (
+                <div className="mt-5 space-y-4">
+                  {data.osBreakdown.map((o) => {
+                    const total = data.osBreakdown.reduce((s, x) => s + x.count, 0);
+                    const pct = total > 0 ? Math.round((o.count / total) * 100) : 0;
+                    return (
+                      <div key={o.os} className="space-y-1.5">
+                        <div className="flex items-center justify-between text-xs font-medium">
+                          <span className="text-zinc-300">{o.os}</span>
                           <span className="tabular-nums text-zinc-500">{pct}%</span>
                         </div>
                         <div className="h-0.5 w-full overflow-hidden rounded-full bg-white/5">
@@ -242,6 +303,7 @@ export default async function DashboardPage({
                   <tr className="border-b border-white/[0.05]">
                     <th className="pb-3 text-xs font-medium text-zinc-500 font-mono uppercase tracking-wider">Event</th>
                     <th className="pb-3 text-xs font-medium text-zinc-500 font-mono uppercase tracking-wider pl-4">Path</th>
+                    <th className="pb-3 text-xs font-medium text-zinc-500 font-mono uppercase tracking-wider pl-4">Location</th>
                     <th className="pb-3 text-xs font-medium text-zinc-500 font-mono uppercase tracking-wider pl-4">Visitor</th>
                     <th className="pb-3 text-xs font-medium text-zinc-500 font-mono uppercase tracking-wider pl-4 text-right">Time</th>
                   </tr>
@@ -253,6 +315,16 @@ export default async function DashboardPage({
                         <code className="text-[11px] px-1.5 py-0.5 rounded-md bg-white/[0.03] text-zinc-300 border border-white/[0.05] font-mono">{event.name}</code>
                       </td>
                       <td className="py-2.5 pl-4 text-zinc-400 max-w-[200px] truncate">{event.path || "—"}</td>
+                      <td className="py-2.5 pl-4 text-zinc-400 text-xs">
+                        {event.country ? (
+                          <span className="inline-flex items-center gap-1">
+                            <span className="text-sm leading-none">{countryCodeToFlag(event.country)}</span>
+                            <span>{countryCodeToName(event.country)}</span>
+                          </span>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
                       <td className="py-2.5 pl-4 font-mono text-[11px] text-zinc-500">{event.visitorId?.slice(0, 10) || "—"}</td>
                       <td className="py-2.5 pl-4 text-right tabular-nums text-xs text-zinc-500">{timeAgo(event.occurredAt)}</td>
                     </tr>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { ingestEvents, resolveProjectByApiKey } from "@/lib/metrics";
+import { parseUserAgent } from "@/lib/ua-parser";
 
 const eventSchema = z.object({
   name: z.string().min(1).max(100),
@@ -58,13 +59,30 @@ export async function POST(request: NextRequest) {
     return withCors(NextResponse.json({ error: "Invalid API key" }, { status: 401 }));
   }
 
+  // ── Extract IP ──
   const ipHeader = request.headers.get("x-forwarded-for");
   const ip = ipHeader?.split(",")[0]?.trim();
 
+  // ── Server-side User-Agent parsing ──
+  const userAgent = request.headers.get("user-agent") ?? undefined;
+  const parsedUA = userAgent ? parseUserAgent(userAgent) : undefined;
+
+  // ── Geo data from Vercel headers (free, automatic on Vercel deployments) ──
+  const country = request.headers.get("x-vercel-ip-country") ?? undefined;
+  const city = request.headers.get("x-vercel-ip-city") ?? undefined;
+  const region = request.headers.get("x-vercel-ip-country-region") ?? undefined;
+
   const accepted = await ingestEvents(project.projectId, parsed.data.events, {
     ip,
-    userAgent: request.headers.get("user-agent") ?? undefined,
+    userAgent,
+    browser: parsedUA?.browser,
+    os: parsedUA?.os,
+    deviceType: parsedUA?.deviceType,
+    country: country || undefined,
+    city: city ? decodeURIComponent(city) : undefined,
+    region: region || undefined,
   });
 
   return withCors(NextResponse.json({ accepted }, { status: 202 }));
 }
+

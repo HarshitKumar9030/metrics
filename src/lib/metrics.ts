@@ -5,6 +5,7 @@ import { getDb } from "@/lib/mongodb";
 import type {
   ApiKeyDoc,
   BrowserBreakdown,
+  CountryBreakdown,
   DashboardData,
   DashboardPoint,
   DashboardSummary,
@@ -13,6 +14,7 @@ import type {
   EventDoc,
   EventInput,
   HourlyHeatmapPoint,
+  OSBreakdown,
   ProjectDoc,
   RecentEvent,
   TopPath,
@@ -34,6 +36,8 @@ async function ensureIndexes() {
     db.collection<EventDoc>("events").createIndex({ projectId: 1, name: 1, occurredAt: -1 }),
     db.collection<EventDoc>("events").createIndex({ projectId: 1, "metadata.referrer": 1, occurredAt: -1 }),
     db.collection<EventDoc>("events").createIndex({ projectId: 1, visitorId: 1, sessionId: 1, occurredAt: -1 }),
+    db.collection<EventDoc>("events").createIndex({ projectId: 1, country: 1, occurredAt: -1 }),
+    db.collection<EventDoc>("events").createIndex({ projectId: 1, browser: 1, occurredAt: -1 }),
   ]);
 
   indexesEnsured = true;
@@ -182,7 +186,16 @@ export async function resolveProjectByApiKey(rawApiKey: string) {
 export async function ingestEvents(
   projectId: ObjectId,
   events: EventInput[],
-  requestMeta: { ip?: string; userAgent?: string },
+  requestMeta: {
+    ip?: string;
+    userAgent?: string;
+    browser?: string;
+    os?: string;
+    deviceType?: string;
+    country?: string;
+    city?: string;
+    region?: string;
+  },
 ) {
   await ensureIndexes();
 
@@ -204,6 +217,12 @@ export async function ingestEvents(
       occurredAt: Number.isNaN(occurredAt.getTime()) ? now : occurredAt,
       ip: requestMeta.ip,
       userAgent: requestMeta.userAgent,
+      browser: requestMeta.browser,
+      os: requestMeta.os,
+      deviceType: requestMeta.deviceType,
+      country: requestMeta.country,
+      city: requestMeta.city,
+      region: requestMeta.region,
       createdAt: now,
     };
   });
@@ -227,6 +246,8 @@ export async function getDashboardData(projectId: string, ownerUserId: string, d
     topReferrers: [],
     browserBreakdown: [],
     deviceBreakdown: [],
+    osBreakdown: [],
+    countryBreakdown: [],
     eventBreakdown: [],
     hourlyHeatmap: [],
     recentEvents: [],
@@ -240,7 +261,7 @@ export async function getDashboardData(projectId: string, ownerUserId: string, d
   const liveThreshold = new Date(Date.now() - 5 * 60 * 1000);
   const baseMatch = { projectId: ownedProjectId, occurredAt: { $gte: since } };
 
-  const [summaryRaw, timelineRaw, topPathsRaw, topReferrersRaw, browserRaw, deviceRaw, eventBreakdownRaw, hourlyRaw, recentRaw, liveRaw, sessionStatsRaw] = await Promise.all([
+  const [summaryRaw, timelineRaw, topPathsRaw, topReferrersRaw, browserRaw, deviceRaw, osRaw, countryRaw, eventBreakdownRaw, hourlyRaw, recentRaw, liveRaw, sessionStatsRaw] = await Promise.all([
     // Summary
     db.collection<EventDoc>("events").aggregate<DashboardSummary & { _id: null }>([
       { $match: baseMatch },
@@ -298,21 +319,45 @@ export async function getDashboardData(projectId: string, ownerUserId: string, d
       { $limit: 10 },
     ]).toArray(),
 
-    // Browser breakdown
+    // Browser breakdown — use server-parsed top-level field, fallback to metadata
     db.collection<EventDoc>("events").aggregate<BrowserBreakdown>([
-      { $match: { ...baseMatch, "metadata.browser": { $exists: true } } },
-      { $group: { _id: "$metadata.browser", count: { $sum: 1 } } },
+      { $match: baseMatch },
+      { $addFields: { _browser: { $ifNull: ["$browser", "$metadata.browser"] } } },
+      { $match: { _browser: { $exists: true, $ne: null } } },
+      { $group: { _id: "$_browser", count: { $sum: 1 } } },
       { $project: { _id: 0, browser: "$_id", count: 1 } },
       { $sort: { count: -1 } },
       { $limit: 8 },
     ]).toArray(),
 
-    // Device breakdown
+    // Device breakdown — use server-parsed top-level field, fallback to metadata
     db.collection<EventDoc>("events").aggregate<DeviceBreakdown>([
-      { $match: { ...baseMatch, "metadata.deviceType": { $exists: true } } },
-      { $group: { _id: "$metadata.deviceType", count: { $sum: 1 } } },
+      { $match: baseMatch },
+      { $addFields: { _deviceType: { $ifNull: ["$deviceType", "$metadata.deviceType"] } } },
+      { $match: { _deviceType: { $exists: true, $ne: null } } },
+      { $group: { _id: "$_deviceType", count: { $sum: 1 } } },
       { $project: { _id: 0, deviceType: "$_id", count: 1 } },
       { $sort: { count: -1 } },
+    ]).toArray(),
+
+    // OS breakdown — use server-parsed top-level field, fallback to metadata
+    db.collection<EventDoc>("events").aggregate<OSBreakdown>([
+      { $match: baseMatch },
+      { $addFields: { _os: { $ifNull: ["$os", "$metadata.os"] } } },
+      { $match: { _os: { $exists: true, $ne: null } } },
+      { $group: { _id: "$_os", count: { $sum: 1 } } },
+      { $project: { _id: 0, os: "$_id", count: 1 } },
+      { $sort: { count: -1 } },
+      { $limit: 8 },
+    ]).toArray(),
+
+    // Country breakdown
+    db.collection<EventDoc>("events").aggregate<CountryBreakdown>([
+      { $match: { ...baseMatch, country: { $exists: true, $ne: null } } },
+      { $group: { _id: "$country", count: { $sum: 1 } } },
+      { $project: { _id: 0, country: "$_id", count: 1 } },
+      { $sort: { count: -1 } },
+      { $limit: 15 },
     ]).toArray(),
 
     // Event breakdown (excluding pageview and internal events)
@@ -392,6 +437,7 @@ export async function getDashboardData(projectId: string, ownerUserId: string, d
     path: e.path,
     metadata: e.metadata,
     visitorId: e.visitorId,
+    country: e.country,
     occurredAt: e.occurredAt,
   }));
 
@@ -402,6 +448,8 @@ export async function getDashboardData(projectId: string, ownerUserId: string, d
     topReferrers: topReferrersRaw,
     browserBreakdown: browserRaw,
     deviceBreakdown: deviceRaw,
+    osBreakdown: osRaw,
+    countryBreakdown: countryRaw,
     eventBreakdown: eventBreakdownRaw,
     hourlyHeatmap: hourlyRaw,
     recentEvents,

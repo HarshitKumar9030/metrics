@@ -31,6 +31,18 @@ export type EventDoc = {
   occurredAt: Date;
   ip?: string;
   userAgent?: string;
+  /** Server-parsed browser name from User-Agent */
+  browser?: string;
+  /** Server-parsed OS name from User-Agent */
+  os?: string;
+  /** Server-parsed device type from User-Agent */
+  deviceType?: string;
+  /** ISO 3166-1 alpha-2 country code from geo-IP */
+  country?: string;
+  /** City name from geo-IP */
+  city?: string;
+  /** Region/state from geo-IP */
+  region?: string;
   createdAt: Date;
 };
 
@@ -80,6 +92,16 @@ export type DeviceBreakdown = {
   count: number;
 };
 
+export type OSBreakdown = {
+  os: string;
+  count: number;
+};
+
+export type CountryBreakdown = {
+  country: string;
+  count: number;
+};
+
 export type EventBreakdown = {
   name: string;
   count: number;
@@ -96,6 +118,7 @@ export type RecentEvent = {
   path?: string;
   metadata?: Record<string, unknown>;
   visitorId?: string;
+  country?: string;
   occurredAt: Date;
 };
 
@@ -106,6 +129,8 @@ export type DashboardData = {
   topReferrers: TopReferrer[];
   browserBreakdown: BrowserBreakdown[];
   deviceBreakdown: DeviceBreakdown[];
+  osBreakdown: OSBreakdown[];
+  countryBreakdown: CountryBreakdown[];
   eventBreakdown: EventBreakdown[];
   hourlyHeatmap: HourlyHeatmapPoint[];
   recentEvents: RecentEvent[];

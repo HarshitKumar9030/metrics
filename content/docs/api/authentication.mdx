@@ -1,6 +1,6 @@
 ---
 title: "Authentication"
-description: "How API keys and Clerk auth work in Harshit Metrics."
+description: "How API keys work in Harshit Metrics."
 ---
 
 ## API Key model
@@ -35,20 +35,12 @@ Keys are **never stored in plaintext**. The system stores:
 - **Rotate keys periodically** for production apps
 - **Monitor "Last used"** in the dashboard to detect stale keys
 
-## Clerk authentication
-
-The dashboard and management APIs use [Clerk](https://clerk.com) for authentication. This provides:
-
-- Email/password and social sign-in
-- Session management with secure cookies
-- User isolation — each user only sees their own projects
-
 ### Protected routes
 
 ```
-/dashboard/**  → requires Clerk authentication
-/api/projects  → requires Clerk authentication
-/api/dashboard → requires Clerk authentication
+/dashboard/**  → requires dashboard authentication
+/api/projects  → requires dashboard authentication
+/api/dashboard → requires dashboard authentication
 ```
 
 ### Public routes
@@ -56,5 +48,5 @@ The dashboard and management APIs use [Clerk](https://clerk.com) for authenticat
 ```
 /              → landing page (public)
 /docs/**       → documentation (public)
-/api/collect   → event ingestion (API key auth, no Clerk)
+/api/collect   → event ingestion (API key auth)
 ```
